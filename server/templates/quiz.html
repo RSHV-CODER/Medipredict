@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz</title>
-    <link rel="stylesheet" href="/static/css/style.css"> <!-- Link to your existing CSS -->
+    <title>Health Assessment Quiz</title>
+    <link rel="stylesheet" href="/static/css/style.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         .quiz-container {
@@ -40,83 +41,244 @@
         .quiz-options button:hover {
             background-color: #45a049;
         }
+
+        #result-container {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
     </style>
 </head>
+
 <body>
     {% include 'components/loggednav.html' %}
 
-    <div class="quiz-container">
+    <div class="quiz-container ">
         <div class="quiz-question text-5xl relative -top-40" id="quiz-question">Loading question...</div>
         <div class="quiz-options flex" id="quiz-options"></div>
+        <div class="text-white dashboard-grid grid grid-cols-3 gap-4" id="result-container"
+            style=" flex-wrap: wrap; justify-content: space-between;">
+            <div id="message"></div>
+            <!-- Heart Rate Card -->
+            <div class="card heart-rate">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-heartbeat"></i>
+                        <h3>Heart Rate</h3>
+                    </div>
+                    <div class="card-badge">BPM</div>
+                </div>
+                <div class="card-content">
+                    <div class="metric-circle">
+                        <span id="heart-rate-value">--</span>
+                    </div>
+                    <div class="metric-chart">
+                        <canvas id="heartRateChart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Normal</span>
+                    <span class="trend">
+                        <i class="fas fa-arrow-up"></i>
+                        2% from last week
+                    </span>
+                </div>
+            </div>
+
+            <!-- SpO2 Card -->
+            <div class="card spo2">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-lungs"></i>
+                        <h3>Oxygen Saturation</h3>
+                    </div>
+                    <div class="card-badge">SpO2</div>
+                </div>
+                <div class="card-content">
+                    <div class="metric-circle">
+                        <span id="spo2-value">--</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="metric-chart">
+                        <canvas id="spo2Chart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Normal</span>
+                    <span class="trend">
+                        <i class="fas fa-arrow-up"></i>
+                        0.5% from last week
+                    </span>
+                </div>
+            </div>
+
+            <!-- Temperature Card -->
+            <div class="card temperature">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-thermometer-half"></i>
+                        <h3>Body Temperature</h3>
+                    </div>
+                    <div class="card-badge">°C</div>
+                </div>
+                <div class="card-content">
+                    <div class="metric-circle">
+                        <span id="temperature-value">--</span>
+                    </div>
+                    <div class="metric-chart">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Normal</span>
+                    <span class="trend">
+                        <i class="fas fa-equals"></i>
+                        Stable
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Array of quiz questions and options
-        const quizzes = [
-            { question: "Do you experience chest pain or discomfort?", options: ["Yes", "No"] },
-            { question: "Do you feel shortness of breath during physical activities?", options: ["Yes", "No"] },
-            { question: "Do you have a family history of heart disease?", options: ["Yes", "No"] },
-            { question: "Do you experience fatigue or weakness frequently?", options: ["Yes", "No"] },
-            { question: "Do you have high blood pressure?", options: ["Yes", "No"] },
-            { question: "Do you smoke or have a history of smoking?", options: ["Yes", "No"] },
-            { question: "Do you have high cholesterol levels?", options: ["Yes", "No"] },
-            { question: "Do you experience swelling in your legs, ankles, or feet?", options: ["Yes", "No"] },
-            { question: "Do you have diabetes or high blood sugar levels?", options: ["Yes", "No"] },
-            { question: "Do you experience irregular or rapid heartbeats?", options: ["Yes", "No"] }
+        const diseaseProbabilities = {
+            "Heart Issues": 0,
+            "Infection": 0,
+            "Thyroid Issues": 0,
+            "Anxiety": 0,
+            "Diabetes": 0
+        };
+
+        const primaryQuestions = [
+            { question: "Do you experience chest pain?", disease: "Heart Issues" },
+            { question: "Do you have persistent fever?", disease: "Infection" },
+            { question: "Do you have unusual fatigue or weight changes?", disease: "Thyroid Issues" },
+            { question: "Do you experience frequent anxiety or stress?", disease: "Anxiety" },
+            { question: "Do you have excessive thirst or hunger?", disease: "Diabetes" }
         ];
 
-        // Array to store user answers
-        const userAnswers = [];
-        let currentQuestionIndex = 0;
+        const followUpQuestions = {
+            "Heart Issues": [
+                "Do you often wake up at night with shortness of breath?",
+                "Do you experience dizziness or fainting spells?",
+                "Do you feel chest pressure under stress?",
+                "Have you noticed swelling in your legs or feet?",
+                "Do you have a history of hypertension or high cholesterol?"
+            ],
+            "Infection": [
+                "Have you had a persistent cough or congestion for more than a week?",
+                "Have you been in contact with someone diagnosed with an infection?",
+                "Are you experiencing body aches and fatigue?",
+                "Do you have a weak immune system or asthma?",
+                "Have you taken medication, and did it help?"
+            ],
+            "Thyroid Issues": [
+                "Have you experienced sudden weight gain or loss?",
+                "Do you often feel too hot or too cold?",
+                "Do you suffer from extreme fatigue or mood swings?",
+                "Do you struggle with memory or concentration?",
+                "Have you been diagnosed with thyroid issues before?"
+            ],
+            "Anxiety": [
+                "Do you experience a racing heart, sweating, or trembling randomly?",
+                "Have you had panic attacks recently?",
+                "Do you have trouble sleeping due to overthinking?",
+                "Have you noticed increased irritability lately?",
+                "Do you get digestive issues when stressed?"
+            ],
+            "Diabetes": [
+                "Do you feel excessive thirst throughout the day?",
+                "Do you urinate frequently at night?",
+                "Do you experience sudden hunger pangs followed by dizziness?",
+                "Have you had unexplained weight loss or gain?",
+                "Does anyone in your family have diabetes?"
+            ]
+        };
 
-        // DOM elements
+        let currentQuestionIndex = 0;
+        let followUpStage = false;
+        let currentDisease = null;
         const quizQuestionElement = document.getElementById("quiz-question");
         const quizOptionsElement = document.getElementById("quiz-options");
+        const resultContainer = document.getElementById("result-container");
+        const message = document.getElementById("message");
 
-        // Function to load a quiz question
         function loadQuestion() {
-            if (currentQuestionIndex < quizzes.length) {
-                const currentQuiz = quizzes[currentQuestionIndex];
+            if (!followUpStage && currentQuestionIndex < primaryQuestions.length) {
+                const currentQuiz = primaryQuestions[currentQuestionIndex];
                 quizQuestionElement.textContent = currentQuiz.question;
-
-                // Clear previous options
                 quizOptionsElement.innerHTML = "";
-
-                // Add options as buttons
-                quizOptionsElement.style.display = "flex";
-                quizOptionsElement.style.flexDirection = "row";
-                quizOptionsElement.style.justifyContent = "center";
-                quizOptionsElement.style.gap = "20px";
-
-                currentQuiz.options.forEach((option, index) => {
+                ["Yes", "No"].forEach(option => {
                     const button = document.createElement("button");
                     button.textContent = option;
-                    button.style.padding = "30px 40px";
-                    button.style.fontSize = "2rem";
-                    button.style.backgroundColor = "#4caf50";
-                    button.style.color = "white";
-                    button.style.border = "none";
-                    button.style.borderRadius = "5px";
-                    button.style.cursor = "pointer";
-                    button.onclick = () => handleAnswer(index);
+                    button.onclick = () => handleAnswer(currentQuiz.disease, option);
                     quizOptionsElement.appendChild(button);
                 });
+            } else if (followUpStage && currentDisease) {
+                displayFollowUpQuestions(currentDisease);
             } else {
-                // All questions answered
-                alert("Test finished");
-                console.log("User Answers:", userAnswers); // Log answers for debugging
+                displayResult();
             }
         }
 
-        // Function to handle user's answer
-        function handleAnswer(selectedOptionIndex) {
-            userAnswers.push(selectedOptionIndex); // Store the selected answer
-            currentQuestionIndex++; // Move to the next question
-            loadQuestion(); // Load the next question
+        function handleAnswer(disease, answer) {
+            if (answer === "Yes") {
+                diseaseProbabilities[disease] += 20;
+                currentDisease = disease;
+            }
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= primaryQuestions.length && currentDisease) {
+                followUpStage = true;
+            }
+            loadQuestion();
         }
 
-        // Load the first question on page load
+        function displayFollowUpQuestions(disease) {
+            const questions = followUpQuestions[disease];
+            quizQuestionElement.textContent = questions[0];
+            quizOptionsElement.innerHTML = "";
+            let index = 0;
+            ["Yes", "No"].forEach(option => {
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.onclick = () => {
+                    if (option === "Yes") {
+                        diseaseProbabilities[disease] += 15;
+                    }
+                    index++;
+                    if (index < questions.length) {
+                        quizQuestionElement.textContent = questions[index];
+                    } else {
+                        displayResult();
+                    }
+                };
+                quizOptionsElement.appendChild(button);
+            });
+        }
+
+        function displayResult() {
+            quizQuestionElement.style.display = "none";
+            quizOptionsElement.style.display = "none";
+            resultContainer.style.display = "flex";
+
+            let highestProbability = 0;
+            let probableDisease = "None";
+
+            for (const disease in diseaseProbabilities) {
+                if (diseaseProbabilities[disease] > highestProbability) {
+                    highestProbability = diseaseProbabilities[disease];
+                    probableDisease = disease;
+                }
+            }
+
+            message.innerHTML = `Based on your answers, you might currently have <strong>${probableDisease}</strong>, be at risk in the future, or have no risk.`;
+        }
+
         loadQuestion();
     </script>
 </body>
+
 </html>
