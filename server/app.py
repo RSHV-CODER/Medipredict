@@ -100,6 +100,14 @@ def login():
 def signup():
     return render_template("signup.html")
     
+@app.route("/collecting-data", methods=["GET"])
+def collecting_data():
+    return render_template("collecting-data.html")
+    
+@app.route("/take-test", methods=["GET"])
+def quiz():
+    return render_template("quiz.html")
+    
 # ✅ Dummy Data for Testing (Only if needed)
 @app.route("/test", methods=["POST"])
 def send_dummy_data():

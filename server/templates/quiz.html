@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="/static/css/style.css"> <!-- Link to your existing CSS -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            text-align: center;
+        }
+
+        .quiz-question {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-options button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .quiz-options button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/loggednav.html' %}
+
+    <div class="quiz-container">
+        <div class="quiz-question text-5xl relative -top-40" id="quiz-question">Loading question...</div>
+        <div class="quiz-options flex" id="quiz-options"></div>
+    </div>
+
+    <script>
+        // Array of quiz questions and options
+        const quizzes = [
+            { question: "Do you experience chest pain or discomfort?", options: ["Yes", "No"] },
+            { question: "Do you feel shortness of breath during physical activities?", options: ["Yes", "No"] },
+            { question: "Do you have a family history of heart disease?", options: ["Yes", "No"] },
+            { question: "Do you experience fatigue or weakness frequently?", options: ["Yes", "No"] },
+            { question: "Do you have high blood pressure?", options: ["Yes", "No"] },
+            { question: "Do you smoke or have a history of smoking?", options: ["Yes", "No"] },
+            { question: "Do you have high cholesterol levels?", options: ["Yes", "No"] },
+            { question: "Do you experience swelling in your legs, ankles, or feet?", options: ["Yes", "No"] },
+            { question: "Do you have diabetes or high blood sugar levels?", options: ["Yes", "No"] },
+            { question: "Do you experience irregular or rapid heartbeats?", options: ["Yes", "No"] }
+        ];
+
+        // Array to store user answers
+        const userAnswers = [];
+        let currentQuestionIndex = 0;
+
+        // DOM elements
+        const quizQuestionElement = document.getElementById("quiz-question");
+        const quizOptionsElement = document.getElementById("quiz-options");
+
+        // Function to load a quiz question
+        function loadQuestion() {
+            if (currentQuestionIndex < quizzes.length) {
+                const currentQuiz = quizzes[currentQuestionIndex];
+                quizQuestionElement.textContent = currentQuiz.question;
+
+                // Clear previous options
+                quizOptionsElement.innerHTML = "";
+
+                // Add options as buttons
+                quizOptionsElement.style.display = "flex";
+                quizOptionsElement.style.flexDirection = "row";
+                quizOptionsElement.style.justifyContent = "center";
+                quizOptionsElement.style.gap = "20px";
+
+                currentQuiz.options.forEach((option, index) => {
+                    const button = document.createElement("button");
+                    button.textContent = option;
+                    button.style.padding = "30px 40px";
+                    button.style.fontSize = "2rem";
+                    button.style.backgroundColor = "#4caf50";
+                    button.style.color = "white";
+                    button.style.border = "none";
+                    button.style.borderRadius = "5px";
+                    button.style.cursor = "pointer";
+                    button.onclick = () => handleAnswer(index);
+                    quizOptionsElement.appendChild(button);
+                });
+            } else {
+                // All questions answered
+                alert("Test finished");
+                console.log("User Answers:", userAnswers); // Log answers for debugging
+            }
+        }
+
+        // Function to handle user's answer
+        function handleAnswer(selectedOptionIndex) {
+            userAnswers.push(selectedOptionIndex); // Store the selected answer
+            currentQuestionIndex++; // Move to the next question
+            loadQuestion(); // Load the next question
+        }
+
+        // Load the first question on page load
+        loadQuestion();
+    </script>
+</body>
+</html>
