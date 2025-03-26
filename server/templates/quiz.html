@@ -40,83 +40,183 @@
         .quiz-options button:hover {
             background-color: #45a049;
         }
+        /* Add loading spinner style */
+        .loading-spinner {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4caf50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .diagnosis-result {
+            display: none;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .error-message {
+            color: red;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     {% include 'components/loggednav.html' %}
 
     <div class="quiz-container">
-        <div class="quiz-question text-5xl relative -top-40" id="quiz-question">Loading question...</div>
+        <div class="quiz-question text-5xl relative -top-40" id="quiz-question">Loading initial health data...</div>
         <div class="quiz-options flex" id="quiz-options"></div>
+        <div class="loading-spinner" id="loading-spinner"></div>
+        <div class="diagnosis-result" id="diagnosis-result"></div>
+        <div class="error-message" id="error-message"></div>
     </div>
 
     <script>
-        // Array of quiz questions and options
-        const quizzes = [
-            { question: "Do you experience chest pain or discomfort?", options: ["Yes", "No"] },
-            { question: "Do you feel shortness of breath during physical activities?", options: ["Yes", "No"] },
-            { question: "Do you have a family history of heart disease?", options: ["Yes", "No"] },
-            { question: "Do you experience fatigue or weakness frequently?", options: ["Yes", "No"] },
-            { question: "Do you have high blood pressure?", options: ["Yes", "No"] },
-            { question: "Do you smoke or have a history of smoking?", options: ["Yes", "No"] },
-            { question: "Do you have high cholesterol levels?", options: ["Yes", "No"] },
-            { question: "Do you experience swelling in your legs, ankles, or feet?", options: ["Yes", "No"] },
-            { question: "Do you have diabetes or high blood sugar levels?", options: ["Yes", "No"] },
-            { question: "Do you experience irregular or rapid heartbeats?", options: ["Yes", "No"] }
-        ];
+        const dummyData = {
+            "heart_rate": 85,
+            "spo2": 97.5,
+            "temperature": 36.8,
+            "acceleration": [0.1, -0.2, 9.8]
+        };
 
-        // Array to store user answers
-        const userAnswers = [];
-        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let currentQuestion = null;
 
-        // DOM elements
-        const quizQuestionElement = document.getElementById("quiz-question");
-        const quizOptionsElement = document.getElementById("quiz-options");
+        const elements = {
+            question: document.getElementById("quiz-question"),
+            options: document.getElementById("quiz-options"),
+            loader: document.getElementById("loading-spinner"),
+            result: document.getElementById("diagnosis-result")
+        };
 
-        // Function to load a quiz question
-        function loadQuestion() {
-            if (currentQuestionIndex < quizzes.length) {
-                const currentQuiz = quizzes[currentQuestionIndex];
-                quizQuestionElement.textContent = currentQuiz.question;
+        function showLoader(show) {
+            elements.loader.style.display = show ? 'block' : 'none';
+        }
+        // Add error handling element
+        elements.error = document.getElementById("error-message");
 
-                // Clear previous options
-                quizOptionsElement.innerHTML = "";
+        function showError(message) {
+            elements.error.textContent = message;
+            elements.error.style.display = 'block';
+            setTimeout(() => elements.error.style.display = 'none', 5000);
+        }
 
-                // Add options as buttons
-                quizOptionsElement.style.display = "flex";
-                quizOptionsElement.style.flexDirection = "row";
-                quizOptionsElement.style.justifyContent = "center";
-                quizOptionsElement.style.gap = "20px";
-
-                currentQuiz.options.forEach((option, index) => {
-                    const button = document.createElement("button");
-                    button.textContent = option;
-                    button.style.padding = "30px 40px";
-                    button.style.fontSize = "2rem";
-                    button.style.backgroundColor = "#4caf50";
-                    button.style.color = "white";
-                    button.style.border = "none";
-                    button.style.borderRadius = "5px";
-                    button.style.cursor = "pointer";
-                    button.onclick = () => handleAnswer(index);
-                    quizOptionsElement.appendChild(button);
+        async function fetchAIQuestion(answers = []) {
+            showLoader(true);
+            try {
+                const response = await fetch('/generate_question', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        health_data: dummyData,
+                        answers: answers
+                    })
                 });
-            } else {
-                // All questions answered
-                alert("Test finished");
-                console.log("User Answers:", userAnswers); // Log answers for debugging
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(`AI Error: ${data.error}`);
+                    return null;
+                }
+                
+                return data; // Changed from data.question to data
+
+            } catch (error) {
+                showError('Network error - please try again');
+                return null;
+            } finally {
+                showLoader(false);
             }
         }
 
-        // Function to handle user's answer
-        function handleAnswer(selectedOptionIndex) {
-            userAnswers.push(selectedOptionIndex); // Store the selected answer
-            currentQuestionIndex++; // Move to the next question
-            loadQuestion(); // Load the next question
+        async function fetchDiagnosis() {
+            showLoader(true);
+            try {
+                const response = await fetch('/diagnose', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        health_data: dummyData,
+                        answers: userAnswers
+                    })
+                });
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching diagnosis:', error);
+                return null;
+            } finally {
+                showLoader(false);
+            }
         }
 
-        // Load the first question on page load
-        loadQuestion();
+        function displayQuestion(question) {
+            if (!question || !question.text || !question.options) {
+                showError('Invalid question format received');
+                return;
+            }
+            
+            elements.question.textContent = question.text;
+            elements.options.innerHTML = '';
+            
+            question.options.forEach((option) => {
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.style.padding = "30px 40px";
+                button.style.fontSize = "2rem";
+                button.onclick = () => handleAnswer(option);
+                elements.options.appendChild(button);
+            });
+        }
+
+        async function handleAnswer(answer) {
+            userAnswers.push(answer);
+            const nextQuestion = await fetchAIQuestion(userAnswers);
+            
+            if (nextQuestion && !nextQuestion.completed) {
+                displayQuestion(nextQuestion);
+            } else {
+                const diagnosis = await fetchDiagnosis();
+                if (diagnosis) {
+                    showDiagnosis(diagnosis);
+                }
+            }
+        }
+
+        function showDiagnosis(diagnosis) {
+            elements.question.style.display = 'none';
+            elements.options.style.display = 'none';
+            elements.result.style.display = 'block';
+            elements.result.innerHTML = `
+                <h2>Diagnosis: ${diagnosis.condition}</h2>
+                <p>Confidence: ${diagnosis.confidence}%</p>
+                <h3>Recommendations:</h3>
+                <ul>${diagnosis.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+            `;
+        }
+
+        // Initialize quiz
+        async function initQuiz() {
+            const firstQuestion = await fetchAIQuestion();
+            if (firstQuestion) {
+                displayQuestion(firstQuestion);
+            }
+        }
+
+        // Start the quiz
+        initQuiz();
     </script>
 </body>
 </html>
