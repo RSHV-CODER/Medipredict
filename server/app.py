@@ -94,16 +94,10 @@ def dashboard():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        # Handle login logic here
-        return jsonify({"message": "Login successful!"})
     return render_template("login.html")
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=["GET"])
 def signup():
-    if request.method == "POST":
-        # Handle signup logic here
-        return jsonify({"message": "Signup successful!"})
     return render_template("signup.html")
     
 # ✅ Dummy Data for Testing (Only if needed)
