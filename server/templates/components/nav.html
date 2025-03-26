@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Monitoring Dashboard</title>
+    <link rel="stylesheet" href="../../static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        /* Custom Tailwind Config */
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#22C55E', /* Green theme */
+                        secondary: '#1E293B',
+                        accent: '#4ADE80', /* Lighter green */
+                        dark: '#0F172A',
+                        light: '#F8FAFC',
+                        grayText: '#94A3B8',
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-dark text-light font-sans">
+    <div class="container">
+
+        <header>
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <h1>Health Monitor</h1>
+            </div>
+            <div class="user-controls">
+            </div>
+        </header>
+
+<script src="../../static/script.js"></script>

@@ -3,243 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Monitoring Dashboard</title>
-    <link rel="stylesheet" href="../static/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <title>Health Monitor - Landing Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        /* Custom Tailwind Config */
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#22C55E', /* Green theme */
+                        secondary: '#1E293B',
+                        accent: '#4ADE80', /* Lighter green */
+                        dark: '#0F172A',
+                        light: '#F8FAFC',
+                        grayText: '#94A3B8',
+                    },
+                },
+            },
+        };
+    </script>
 </head>
-<body class="dark">
-    <div class="container">
-        <header>
-            <div class="logo">
-                <i class="fas fa-heartbeat"></i>
-                <h1>Health Monitor</h1>
-            </div>
-            <div class="user-controls">
-                <div class="user-profile">
-                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User Profile">
-                    <div class="user-info">
-                        <span class="user-name">Rishab Mandal</span>
-                        <span class="user-handle">@rishabMandal</span>
-                    </div>
-                </div>
-                <button id="theme-toggle" class="icon-button">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <button class="icon-button">
-                    <i class="fas fa-bell"></i>
-                </button>
-                <button class="icon-button menu-button">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
-        </header>
+<body class="bg-dark text-light font-sans">
+    {% include 'components/nav.html' %}
 
-        <div class="dashboard-header">
-            <div class="title">
-                <h2>Health Records</h2>
-                <h1>Dashboard</h1>
-            </div>
-            <div class="date-controls">
-                <div class="date-selector">
-                    <span id="current-date">Sat, 26 Aug</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="time-selector">
-                    <span>24h</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <button class="primary-button">
-                    Weekly
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-        </div>
+    <!-- Hero Section -->
+    <section class="text-center py-20 bg-dark">
+        <h2 class="text-4xl font-bold text-light mb-4">Monitor Your Health Anytime, Anywhere</h2>
+        <p class="text-lg text-grayText mb-8">Track your vitals, predict health risks, and stay on top of your well-being with our AI-powered dashboard.</p>
+        <a href="./dashboard.html" class="px-6 py-3 bg-primary text-light rounded-lg text-lg hover:bg-accent">Get Started</a>
+    </section>
 
-        <div class="alert-container" id="alert-box">
-            <div class="alert-content">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="alert-message">No alerts</span>
-            </div>
-            <button class="close-alert">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="dashboard-grid">
-            <!-- Heart Rate Card -->
-            <div class="card heart-rate">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-heartbeat"></i>
-                        <h3>Heart Rate</h3>
-                    </div>
-                    <div class="card-badge">BPM</div>
+    <!-- Features Section -->
+    <section id="features" class="py-16 bg-secondary">
+        <div class="container mx-auto px-8">
+            <h3 class="text-3xl font-bold text-light text-center mb-12">Features</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-dark p-6 rounded-lg shadow-lg">
+                    <i class="fas fa-heartbeat text-primary text-3xl mb-4"></i>
+                    <h4 class="text-xl font-bold text-light mb-2">Real-Time Monitoring</h4>
+                    <p class="text-grayText">Track your heart rate, oxygen levels, and body temperature in real-time.</p>
                 </div>
-                <div class="card-content">
-                    <div class="metric-circle">
-                        <span id="heart-rate-value">--</span>
-                    </div>
-                    <div class="metric-chart">
-                        <canvas id="heartRateChart"></canvas>
-                    </div>
+                <!-- Feature 2 -->
+                <div class="bg-dark p-6 rounded-lg shadow-lg">
+                    <i class="fas fa-stethoscope text-primary text-3xl mb-4"></i>
+                    <h4 class="text-xl font-bold text-light mb-2">AI Predictions</h4>
+                    <p class="text-grayText">Get AI-powered predictions for potential health risks.</p>
                 </div>
-                <div class="card-footer">
-                    <span class="status normal">Normal</span>
-                    <span class="trend">
-                        <i class="fas fa-arrow-up"></i>
-                        2% from last week
-                    </span>
-                </div>
-            </div>
-
-            <!-- SpO2 Card -->
-            <div class="card spo2">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-lungs"></i>
-                        <h3>Oxygen Saturation</h3>
-                    </div>
-                    <div class="card-badge">SpO2</div>
-                </div>
-                <div class="card-content">
-                    <div class="metric-circle">
-                        <span id="spo2-value">--</span>
-                        <span class="unit">%</span>
-                    </div>
-                    <div class="metric-chart">
-                        <canvas id="spo2Chart"></canvas>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Normal</span>
-                    <span class="trend">
-                        <i class="fas fa-arrow-up"></i>
-                        0.5% from last week
-                    </span>
-                </div>
-            </div>
-
-            <!-- Temperature Card -->
-            <div class="card temperature">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-thermometer-half"></i>
-                        <h3>Body Temperature</h3>
-                    </div>
-                    <div class="card-badge">°C</div>
-                </div>
-                <div class="card-content">
-                    <div class="metric-circle">
-                        <span id="temperature-value">--</span>
-                    </div>
-                    <div class="metric-chart">
-                        <canvas id="temperatureChart"></canvas>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Normal</span>
-                    <span class="trend">
-                        <i class="fas fa-equals"></i>
-                        Stable
-                    </span>
-                </div>
-            </div>
-
-            <!-- Fall Detection Card -->
-            <div class="card fall-detection">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-walking"></i>
-                        <h3>Movement Status</h3>
-                    </div>
-                    <div class="card-badge">Status</div>
-                </div>
-                <div class="card-content">
-                    <div class="status-indicator">
-                        <div class="status-icon" id="movement-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="status-text" id="movement-status">--</div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Monitoring</span>
-                    <button class="action-button">
-                        <i class="fas fa-history"></i>
-                        History
-                    </button>
-                </div>
-            </div>
-
-            <!-- Predicted Disease Card -->
-            <div class="card disease-prediction">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-stethoscope"></i>
-                        <h3>AI Prediction</h3>
-                    </div>
-                    <div class="card-badge">Analysis</div>
-                </div>
-                <div class="card-content">
-                    <div class="prediction-result" id="prediction-result">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="predicted-disease">--</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Updated</span>
-                    <span class="timestamp" id="last-updated">--</span>
-                </div>
-            </div>
-
-            <!-- Breathing Exercise Card -->
-            <div class="card breathing-exercise">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-wind"></i>
-                        <h3>Breathing Exercise</h3>
-                    </div>
-                    <button class="start-button" id="start-breathing">
-                        Start
-                    </button>
-                </div>
-                <div class="card-content">
-                    <div class="breathing-circle" id="breathing-circle">
-                        <div class="breathing-instruction" id="breathing-instruction">
-                            Click to start
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Relax and focus</span>
-                    <span class="trend">
-                        Reduces stress & anxiety
-                    </span>
-                </div>
-            </div>
-
-            <!-- Add this new section before the closing </div> of dashboard-grid -->
-            <div class="card health-chat">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-comment-medical"></i>
-                        <h3>Health Assistant</h3>
-                    </div>
-                    <div class="card-badge">AI-Powered</div>
-                </div>
-                <div class="card-content">
-                    <div class="chat-messages" id="chat-messages"></div>
-                    <div class="chat-input">
-                        <input type="text" id="user-input" placeholder="Ask about your health...">
-                        <button id="send-question"><i class="fas fa-paper-plane"></i></button>
-                    </div>
+                <!-- Feature 3 -->
+                <div class="bg-dark p-6 rounded-lg shadow-lg">
+                    <i class="fas fa-wind text-primary text-3xl mb-4"></i>
+                    <h4 class="text-xl font-bold text-light mb-2">Breathing Exercises</h4>
+                    <p class="text-grayText">Reduce stress and anxiety with guided breathing exercises.</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../static/script.js"></script>
+    <!-- About Section -->
+    <section id="about" class="py-16 bg-dark">
+        <div class="container mx-auto px-8 text-center">
+            <h3 class="text-3xl font-bold text-light mb-6">About Us</h3>
+            <p class="text-grayText max-w-2xl mx-auto">Health Monitor is a cutting-edge platform designed to help you stay on top of your health. With real-time monitoring, AI-powered insights, and user-friendly tools, we empower you to take control of your well-being.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-6 bg-secondary text-center">
+        <p class="text-grayText">© 2025 Health Monitor. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>

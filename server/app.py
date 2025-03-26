@@ -81,11 +81,31 @@ def get_data():
     with data_lock:
         return jsonify(sensor_data)  # Send real-time data to frontend
 
-# ✅ Web Dashboard Route
+# ✅ Web Dashboard Route for Home Page
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")  # Web UI
 
+# ✅ Web Dashboard Route for Dashboard Page
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")  # Web UI
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        # Handle login logic here
+        return jsonify({"message": "Login successful!"})
+    return render_template("login.html")
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        # Handle signup logic here
+        return jsonify({"message": "Signup successful!"})
+    return render_template("signup.html")
+    
 # ✅ Dummy Data for Testing (Only if needed)
 @app.route("/test", methods=["POST"])
 def send_dummy_data():
