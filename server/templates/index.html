@@ -4,47 +4,242 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Monitoring Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
-<body>
-    <header>
-        <h1>IoT Health Monitoring System</h1>
-    </header>
+<body class="dark">
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <h1>Health Monitor</h1>
+            </div>
+            <div class="user-controls">
+                <div class="user-profile">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User Profile">
+                    <div class="user-info">
+                        <span class="user-name">Rishab Mandal</span>
+                        <span class="user-handle">@rishabMandal</span>
+                    </div>
+                </div>
+                <button id="theme-toggle" class="icon-button">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="icon-button">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="icon-button menu-button">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
 
-    <section class="dashboard">
-        <div class="card">
-            <h2>Heart Rate (BPM)</h2>
-            <p id="heartRate">--</p>
+        <div class="dashboard-header">
+            <div class="title">
+                <h2>Health Records</h2>
+                <h1>Dashboard</h1>
+            </div>
+            <div class="date-controls">
+                <div class="date-selector">
+                    <span id="current-date">Sat, 26 Aug</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="time-selector">
+                    <span>24h</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <button class="primary-button">
+                    Weekly
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>SpO2 Level (%)</h2>
-            <p id="spo2">--</p>
+        <div class="alert-container" id="alert-box">
+            <div class="alert-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="alert-message">No alerts</span>
+            </div>
+            <button class="close-alert">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
-        <div class="card">
-            <h2>Body Temperature (°C)</h2>
-            <p id="temperature">--</p>
+        <div class="dashboard-grid">
+            <!-- Heart Rate Card -->
+            <div class="card heart-rate">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-heartbeat"></i>
+                        <h3>Heart Rate</h3>
+                    </div>
+                    <div class="card-badge">BPM</div>
+                </div>
+                <div class="card-content">
+                    <div class="metric-circle">
+                        <span id="heart-rate-value">--</span>
+                    </div>
+                    <div class="metric-chart">
+                        <canvas id="heartRateChart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Normal</span>
+                    <span class="trend">
+                        <i class="fas fa-arrow-up"></i>
+                        2% from last week
+                    </span>
+                </div>
+            </div>
+
+            <!-- SpO2 Card -->
+            <div class="card spo2">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-lungs"></i>
+                        <h3>Oxygen Saturation</h3>
+                    </div>
+                    <div class="card-badge">SpO2</div>
+                </div>
+                <div class="card-content">
+                    <div class="metric-circle">
+                        <span id="spo2-value">--</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="metric-chart">
+                        <canvas id="spo2Chart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Normal</span>
+                    <span class="trend">
+                        <i class="fas fa-arrow-up"></i>
+                        0.5% from last week
+                    </span>
+                </div>
+            </div>
+
+            <!-- Temperature Card -->
+            <div class="card temperature">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-thermometer-half"></i>
+                        <h3>Body Temperature</h3>
+                    </div>
+                    <div class="card-badge">°C</div>
+                </div>
+                <div class="card-content">
+                    <div class="metric-circle">
+                        <span id="temperature-value">--</span>
+                    </div>
+                    <div class="metric-chart">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Normal</span>
+                    <span class="trend">
+                        <i class="fas fa-equals"></i>
+                        Stable
+                    </span>
+                </div>
+            </div>
+
+            <!-- Fall Detection Card -->
+            <div class="card fall-detection">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-walking"></i>
+                        <h3>Movement Status</h3>
+                    </div>
+                    <div class="card-badge">Status</div>
+                </div>
+                <div class="card-content">
+                    <div class="status-indicator">
+                        <div class="status-icon" id="movement-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="status-text" id="movement-status">--</div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Monitoring</span>
+                    <button class="action-button">
+                        <i class="fas fa-history"></i>
+                        History
+                    </button>
+                </div>
+            </div>
+
+            <!-- Predicted Disease Card -->
+            <div class="card disease-prediction">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-stethoscope"></i>
+                        <h3>AI Prediction</h3>
+                    </div>
+                    <div class="card-badge">Analysis</div>
+                </div>
+                <div class="card-content">
+                    <div class="prediction-result" id="prediction-result">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="predicted-disease">--</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Updated</span>
+                    <span class="timestamp" id="last-updated">--</span>
+                </div>
+            </div>
+
+            <!-- Breathing Exercise Card -->
+            <div class="card breathing-exercise">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-wind"></i>
+                        <h3>Breathing Exercise</h3>
+                    </div>
+                    <button class="start-button" id="start-breathing">
+                        Start
+                    </button>
+                </div>
+                <div class="card-content">
+                    <div class="breathing-circle" id="breathing-circle">
+                        <div class="breathing-instruction" id="breathing-instruction">
+                            Click to start
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Relax and focus</span>
+                    <span class="trend">
+                        Reduces stress & anxiety
+                    </span>
+                </div>
+            </div>
+
+            <!-- Add this new section before the closing </div> of dashboard-grid -->
+            <div class="card health-chat">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-comment-medical"></i>
+                        <h3>Health Assistant</h3>
+                    </div>
+                    <div class="card-badge">AI-Powered</div>
+                </div>
+                <div class="card-content">
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="Ask about your health...">
+                        <button id="send-question"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>Movement Status</h2>
-            <p id="movement">--</p>
-        </div>
-
-        <!-- New Section for Predicted Disease -->
-        <div class="card">
-            <h2>Predicted Disease</h2>
-            <p id="predictedDisease">No Disease Detected</p>
-        </div>
-    </section>
-
-    <section id="alerts">
-        <h2>⚠️ Alerts</h2>
-        <div id="alertBox">No alerts</div>
-    </section>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../static/script.js"></script>
 </body>
 </html>
