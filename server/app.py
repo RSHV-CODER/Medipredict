@@ -108,7 +108,7 @@ def collecting_data():
 def quiz():
     return render_template("quiz.html")
     
-# ✅ Dummy Data for Testing (Only if needed)
+# ✅ (Only  needed)
 @app.route("/test", methods=["POST"])
 def send_dummy_data():
     global sensor_data

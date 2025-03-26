@@ -2,9 +2,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <MPU6050.h>
-#include "MAX30105.h"
-#include "heartRate.h"
-#include "algorithm_by_RF.h"  // Ensure correct function header
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -15,23 +12,10 @@
 #define ONE_WIRE_BUS 4  // DS18B20 GPIO
 WiFiClient espClient;
 MPU6050 mpu;
-MAX30105 particleSensor;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature tempSensor(&oneWire);
 
 bool fallDetected = false;
-const byte RATE_SIZE = 4;
-byte rates[RATE_SIZE];
-byte rateSpot = 0;
-long lastBeat = 0;
-int32_t beatsPerMinute;  // Changed from float
-int beatAvg;
-uint32_t irBuffer[100];
-uint32_t redBuffer[100];
-float spo2;
-int8_t validSpO2;
-int8_t validHR;          // Added for heart rate validity
-float ratio, corr;       // Added for RF algorithm parameters
 
 void setup_wifi() {
     Serial.println("🔗 Connecting to WiFi...");
@@ -54,44 +38,14 @@ void setup_wifi() {
     }
 }
 
-void read_pulse_oximeter() {
-    long irValue = particleSensor.getIR();
-    if (irValue < 50000) {
-        Serial.println("No finger detected!");
-        return;
-    }
-
-    for (int i = 0; i < 100; i++) {
-        irBuffer[i] = particleSensor.getIR();
-        redBuffer[i] = particleSensor.getRed();
-        delay(10);
-    }
-
-    // Corrected function call with proper parameters
-    rf_heart_rate_and_oxygen_saturation(
-        irBuffer, 100, redBuffer,
-        &spo2, &validSpO2,
-        &beatsPerMinute, &validHR,
-        &ratio, &corr
-    );
-
-    // Update heart rate average if valid
-    if (validHR) {
-        rates[rateSpot++] = (byte)beatsPerMinute;
-        rateSpot %= RATE_SIZE;
-        beatAvg = 0;
-        for (byte x = 0; x < RATE_SIZE; x++) {
-            beatAvg += rates[x];
-        }
-        beatAvg /= RATE_SIZE;
-    } else {
-        Serial.println("Invalid heart rate reading!");
-    }
-}
-
 float read_temperature() {
     tempSensor.requestTemperatures();
-    return tempSensor.getTempCByIndex(0);
+    float temp = tempSensor.getTempCByIndex(0);
+    if (temp == DEVICE_DISCONNECTED_C) {
+        Serial.println("❌ Temperature sensor not connected or reading failed!");
+        return -1.0;
+    }
+    return temp;
 }
 
 void detect_fall() {
@@ -109,6 +63,19 @@ void detect_fall() {
     }
 }
 
+// Generate dummy values within the specified range
+int get_random_heart_rate() {
+    return random(80, 91);  // Heartbeat between 80-90
+}
+
+float get_random_spo2() {
+    return random(80, 91) + random(0, 100) / 100.0;  // SpO2 between 80-90
+}
+
+float get_random_oxygen() {
+    return random(90, 99) + random(0, 100) / 100.0;  // Oxygen between 90-98
+}
+
 void send_data() {
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("❌ WiFi Disconnected! Attempting to reconnect...");
@@ -120,8 +87,12 @@ void send_data() {
     http.begin(SERVER_URL);
     http.addHeader("Content-Type", "application/json");
 
-    read_pulse_oximeter();
     float temperature = read_temperature();
+    if (temperature == -1.0) {
+        Serial.println("Skipping data send due to invalid temperature reading.");
+        return;
+    }
+
     detect_fall();
 
     int16_t ax, ay, az;
@@ -130,9 +101,21 @@ void send_data() {
     float accelY = ay / 16384.0;
     float accelZ = az / 16384.0;
 
+    // Generate dummy data only if temperature > 32°C
+    int beatAvg = 0;
+    float spo2 = 0;
+    float oxygen = 0;
+    
+    if (temperature > 32.0) {
+        beatAvg = get_random_heart_rate();
+        spo2 = get_random_spo2();
+        oxygen = get_random_oxygen();
+    }
+
     String payload = "{";
     payload += "\"heart_rate\": " + String(beatAvg) + ", ";
     payload += "\"spo2\": " + String(spo2, 2) + ", ";
+    payload += "\"oxygen\": " + String(oxygen, 2) + ", ";
     payload += "\"temperature\": " + String(temperature, 2) + ", ";
     payload += "\"acceleration\": [" + String(accelX, 2) + ", " + String(accelY, 2) + ", " + String(accelZ, 2) + "], ";
     payload += "\"fall_detected\": " + String(fallDetected ? "true" : "false");
@@ -155,13 +138,7 @@ void setup() {
     Serial.begin(115200);
     setup_wifi();
     Wire.begin(21, 22);
-
-    if (!particleSensor.begin(Wire, I2C_SPEED_STANDARD)) {
-        Serial.println("❌ MAX30102 not found!");
-    } else {
-        Serial.println("✅ MAX30102 Initialized!");
-    }
-
+    
     tempSensor.begin();
     Serial.println("✅ DS18B20 Initialized!");
 
@@ -172,6 +149,8 @@ void setup() {
         Serial.println("✅ MPU6050 Initialized!");
         mpu.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
     }
+    
+    randomSeed(analogRead(0)); // Initialize random seed
 }
 
 void loop() {
