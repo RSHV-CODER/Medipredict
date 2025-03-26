@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Monitoring Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <header>
+        <h1>IoT Health Monitoring System</h1>
+    </header>
+
+    <section class="dashboard">
+        <div class="card">
+            <h2>Heart Rate (BPM)</h2>
+            <p id="heartRate">--</p>
+        </div>
+
+        <div class="card">
+            <h2>SpO2 Level (%)</h2>
+            <p id="spo2">--</p>
+        </div>
+
+        <div class="card">
+            <h2>Body Temperature (°C)</h2>
+            <p id="temperature">--</p>
+        </div>
+
+        <div class="card">
+            <h2>Movement Status</h2>
+            <p id="movement">--</p>
+        </div>
+
+        <!-- New Section for Predicted Disease -->
+        <div class="card">
+            <h2>Predicted Disease</h2>
+            <p id="predictedDisease">No Disease Detected</p>
+        </div>
+    </section>
+
+    <section id="alerts">
+        <h2>⚠️ Alerts</h2>
+        <div id="alertBox">No alerts</div>
+    </section>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
