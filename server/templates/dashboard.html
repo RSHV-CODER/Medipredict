@@ -139,26 +139,54 @@
                 </div>
             </div>
 
-            <!-- Predicted Disease Card -->
-            <div class="card disease-prediction">
+            <!-- Start Test Card -->
+            <div class="card breathing-exercise">
                 <div class="card-header">
                     <div class="card-title">
-                        <i class="fas fa-stethoscope"></i>
-                        <h3>AI Prediction</h3>
+                        <i class="fas fa-wind"></i>
+                        <h3>Take a test</h3>
                     </div>
-                    <div class="card-badge">Analysis</div>
+                    
+                    <button class="bg-primary py-2 px-5" id="start-test">
+                        Start
+                    </button></a>
                 </div>
                 <div class="card-content">
-                    <div class="prediction-result" id="prediction-result">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="predicted-disease">--</span>
+                    <div class="breathing-circle" id="breathing-circle">
+                        <a href="/collecting-data">
+                        <div class="take-test" id="take-test">
+                            Click to start
+                        </div></a>
                     </div>
                 </div>
                 <div class="card-footer">
-                    <span class="status normal">Updated</span>
-                    <span class="timestamp" id="last-updated">--</span>
+                    <span class="status normal">Relax and focus</span>
+                    <span class="trend">
+                        Reduces stress & anxiety
+                    </span>
                 </div>
             </div>
+
+            
+
+            <!-- Add this new section before the closing </div> of dashboard-grid -->
+            <div class="card health-chat">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-comment-medical"></i>
+                        <h3>Health Assistant</h3>
+                    </div>
+                    <div class="card-badge">AI-Powered</div>
+                </div>
+                <div class="card-content">
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="Ask about your health...">
+                        <button id="send-question"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Breathing Exercise Card -->
             <div class="card breathing-exercise">
@@ -186,21 +214,25 @@
                 </div>
             </div>
 
-            <!-- Add this new section before the closing </div> of dashboard-grid -->
-            <div class="card health-chat">
+
+            <!-- Predicted Disease Card -->
+            <div class="card disease-prediction">
                 <div class="card-header">
                     <div class="card-title">
-                        <i class="fas fa-comment-medical"></i>
-                        <h3>Health Assistant</h3>
+                        <i class="fas fa-stethoscope"></i>
+                        <h3>AI Prediction</h3>
                     </div>
-                    <div class="card-badge">AI-Powered</div>
+                    <div class="card-badge">Analysis</div>
                 </div>
                 <div class="card-content">
-                    <div class="chat-messages" id="chat-messages"></div>
-                    <div class="chat-input">
-                        <input type="text" id="user-input" placeholder="Ask about your health...">
-                        <button id="send-question"><i class="fas fa-paper-plane"></i></button>
+                    <div class="prediction-result" id="prediction-result">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="predicted-disease">--</span>
                     </div>
+                </div>
+                <div class="card-footer">
+                    <span class="status normal">Updated</span>
+                    <span class="timestamp" id="last-updated">--</span>
                 </div>
             </div>
         </div>
