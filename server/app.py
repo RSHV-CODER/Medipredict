@@ -1,7 +1,7 @@
 import json
 import threading
 import logging
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_socketio import SocketIO
 from ai_model import predict_disease  # AI model for disease prediction
 from fall_detection import detect_fall  # Fall detection logic
@@ -120,6 +120,10 @@ def send_dummy_data():
         return post_data()
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 400
+
+@app.route('/firebase.js')
+def serve_firebase():
+    return send_from_directory("static", "firebase.js", mimetype="application/javascript")
 
 # ✅ Run Flask with WebSocket Support
 if __name__ == "__main__":
