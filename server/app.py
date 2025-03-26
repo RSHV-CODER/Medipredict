@@ -1,18 +1,21 @@
 import json
 import threading
 import logging
-import os
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
 from flask_socketio import SocketIO
-from openai import OpenAI
-from ai_model import predict_disease  # Your custom model
-from fall_detection import detect_fall  # Your fall detection logic
-import re
+from flask_session import Session
+from ai_model import predict_disease  # AI model for disease prediction
+from fall_detection import detect_fall  # Fall detection logic
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+app.secret_key = "your_secret_key"  # Replace with a secure key
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Enable WebSocket communication
 
 # Configure OpenRouter client
 client = OpenAI(
@@ -265,18 +268,56 @@ def get_data():
 def home():
     return render_template("index.html")
 
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
+
+# Middleware to protect routes
+def login_required(func):
+    def wrapper(*args, **kwargs):
+        if "user" not in session:
+            return redirect(url_for("login"))
+        return func(*args, **kwargs)
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if "user" in session:
+        return redirect(url_for("dashboard"))  # Redirect if already logged in
+
+    if request.method == "POST":
+        # Handle signup logic here
+        email = request.form.get("email")
+        password = request.form.get("password")
+        # Assume signup is successful
+        session["user"] = email  # Store user in session
+        return redirect(url_for("dashboard"))
+
+    return render_template("signup.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user" in session:
+        return redirect(url_for("dashboard"))  # Redirect if already logged in
+
+    if request.method == "POST":
+        # Handle login logic here
+        email = request.form.get("email")
+        password = request.form.get("password")
+        # Assume login is successful
+        session["user"] = email  # Store user in session
+        return redirect(url_for("dashboard"))
+
     return render_template("login.html")
 
-@app.route("/signup", methods=["GET"])
-def signup():
-    return render_template("signup.html")
-    
+@app.route("/dashboard")
+
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)  # Remove user from session
+    return redirect(url_for("login"))
 @app.route("/collecting-data", methods=["GET"])
 def collecting_data():
     return render_template("collecting-data.html")
