@@ -40,6 +40,7 @@
                  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                  alert("Signup successful!");
                  console.log("User created:", userCredential.user);
+                 document.cookie = `user=${email}; path=/; max-age=3600`; // Set cookie for 1 hour
                  window.location.href = "/dashboard"; // Redirect after successful signup
              } catch (error) {
                  console.error("Error:", error.code, error.message);
@@ -75,6 +76,7 @@
               const userCredential = await signInWithEmailAndPassword(auth, email, password);
               alert("Login successful!");
               console.log("User signed in:", userCredential.user);
+              document.cookie = `user=${email}; path=/; max-age=3600`; 
               window.location.href = "/dashboard"; // Redirect after successful login
           } catch (error) {
               console.error("Error:", error.code, error.message);
