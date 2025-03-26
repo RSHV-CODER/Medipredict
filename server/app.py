@@ -1,5 +1,7 @@
 import json
 import threading
+import re
+from openai import OpenAI
 import logging
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
 from flask_socketio import SocketIO
