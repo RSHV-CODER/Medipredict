@@ -59,87 +59,10 @@
     <div class="quiz-container ">
         <div class="quiz-question text-5xl relative -top-40" id="quiz-question">Loading question...</div>
         <div class="quiz-options flex" id="quiz-options"></div>
-        <div class="text-white dashboard-grid grid grid-cols-3 gap-4" id="result-container"
+        <div class="text-white dashboard-grid grid grid-cols-3 gap-4 text-center text-white" id="result-container"
             style=" flex-wrap: wrap; justify-content: space-between;">
-            <div id="message"></div>
-            <!-- Heart Rate Card -->
-            <div class="card heart-rate">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-heartbeat"></i>
-                        <h3>Heart Rate</h3>
-                    </div>
-                    <div class="card-badge">BPM</div>
-                </div>
-                <div class="card-content">
-                    <div class="metric-circle">
-                        <span id="heart-rate-value">--</span>
-                    </div>
-                    <div class="metric-chart">
-                        <canvas id="heartRateChart"></canvas>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Normal</span>
-                    <span class="trend">
-                        <i class="fas fa-arrow-up"></i>
-                        2% from last week
-                    </span>
-                </div>
-            </div>
-
-            <!-- SpO2 Card -->
-            <div class="card spo2">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-lungs"></i>
-                        <h3>Oxygen Saturation</h3>
-                    </div>
-                    <div class="card-badge">SpO2</div>
-                </div>
-                <div class="card-content">
-                    <div class="metric-circle">
-                        <span id="spo2-value">--</span>
-                        <span class="unit">%</span>
-                    </div>
-                    <div class="metric-chart">
-                        <canvas id="spo2Chart"></canvas>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Normal</span>
-                    <span class="trend">
-                        <i class="fas fa-arrow-up"></i>
-                        0.5% from last week
-                    </span>
-                </div>
-            </div>
-
-            <!-- Temperature Card -->
-            <div class="card temperature">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-thermometer-half"></i>
-                        <h3>Body Temperature</h3>
-                    </div>
-                    <div class="card-badge">°C</div>
-                </div>
-                <div class="card-content">
-                    <div class="metric-circle">
-                        <span id="temperature-value">--</span>
-                    </div>
-                    <div class="metric-chart">
-                        <canvas id="temperatureChart"></canvas>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span class="status normal">Normal</span>
-                    <span class="trend">
-                        <i class="fas fa-equals"></i>
-                        Stable
-                    </span>
-                </div>
-            </div>
+            <div id="message" class="text-white text-center"></div>
+            <a href="/dashboard" class="px-6 mx-auto py-3 bg-primary text-light rounded-lg text-lg btn-hover transition">Back to Dashboard</a>
         </div>
     </div>
 
@@ -279,6 +202,10 @@
 
         loadQuestion();
     </script>
+
+    
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../static/script.js"></script>
 </body>
 
 </html>
